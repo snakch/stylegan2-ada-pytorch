@@ -50,11 +50,12 @@ def is_image_ext(fname: Union[str, Path]) -> bool:
 
 def open_image_folder(source_dir, *, max_images: Optional[int]):
     input_images = [str(f) for f in sorted(Path(source_dir).rglob('*')) if is_image_ext(f) and os.path.isfile(f)]
-
+    
     # Load labels.
     labels = {}
     meta_fname = os.path.join(source_dir, 'dataset.json')
     if os.path.isfile(meta_fname):
+        print(f'Using labels data at {meta_fname}')
         with open(meta_fname, 'r') as file:
             labels = json.load(file)['labels']
             if labels is not None:
@@ -63,6 +64,7 @@ def open_image_folder(source_dir, *, max_images: Optional[int]):
                 labels = {}
 
     max_idx = maybe_min(len(input_images), max_images)
+    print(input_images)
 
     def iterate_images():
         for idx, fname in enumerate(input_images):
@@ -330,8 +332,9 @@ def convert_dataset(
 
     if dest == '':
         ctx.fail('--dest output filename or directory must not be an empty string')
-
+    
     num_files, input_iter = open_dataset(source, max_images=max_images)
+    print(num_files)
     archive_root_dir, save_bytes, close_dest = open_dest(dest)
 
     transform_image = make_transform(transform, width, height, resize_filter)

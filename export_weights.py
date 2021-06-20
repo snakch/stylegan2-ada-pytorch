@@ -47,16 +47,21 @@ def determine_config(state_nv):
 @click.argument("output-file")
 def convert(network_pkl, output_file):
     with dnnlib.util.open_url(network_pkl) as f:
-        G_nvidia = legacy.load_network_pkl(f)["G_ema"]
 
+        G_nvidia = legacy.load_G_ema_pkl(f)["G_ema"]
     state_nv = G_nvidia.state_dict()
     n_mapping, n_layers = determine_config(state_nv)
 
     state_ros = {}
 
+    if 'mapping.embed.weight' in state_nv.keys():
+        print('mapping label weights')
+        state_ros['label_embed.weight'] = state_nv['mapping.embed.weight']
+        state_ros['label_embed.bias'] = state_nv['mapping.embed.bias']
+
     for i in range(n_mapping):
-        state_ros[f"style.{i+1}.weight"] = state_nv[f"mapping.fc{i}.weight"]
-        state_ros[f"style.{i+1}.bias"] = state_nv[f"mapping.fc{i}.bias"]
+        state_ros[f"style.{i}.weight"] = state_nv[f"mapping.fc{i}.weight"]
+        state_ros[f"style.{i}.bias"] = state_nv[f"mapping.fc{i}.bias"]
 
     for i in range(int(n_layers)):
         if i > 0:
@@ -72,8 +77,13 @@ def convert(network_pkl, output_file):
             convert_conv(state_ros, state_nv, "conv1", f"synthesis.b{4*(2**i)}.conv1")
             state_ros[f"noises.noise_{2*i}"] = state_nv[f"synthesis.b{4*(2**i)}.conv1.noise_const"].unsqueeze(0).unsqueeze(0)
             convert_to_rgb(state_ros, state_nv, "to_rgb1", f"synthesis.b{4*(2**i)}")
+    
+    latent_avg = state_nv['mapping.w_avg']
 
-    state_dict = {"g_ema": state_ros}
+    # for key, value in state_ros.items():
+        # print(key, value.shape)
+    
+    state_dict = {"g_ema": state_ros, "latent_avg":latent_avg}
     torch.save(state_dict, output_file)
 
 if __name__ == "__main__":

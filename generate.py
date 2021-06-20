@@ -390,8 +390,8 @@ def generate_images(
             interpolate(G,device,projected_w,seeds,random_seed,space,truncation_psi,label,frames,noise_mode,dirpath,interpolation,easing,diameter)
 
         # convert to video
-        cmd=f'ffmpeg -y -r {fps} -i {dirpath}/frame%04d.png -vcodec libx264 -pix_fmt yuv420p {outdir}/{vidname}.mp4'
         subprocess.call(cmd, shell=True)
+        cmd=f'ffmpeg -y -r {fps} -i {dirpath}/frame%04d.png -vcodec libx264 -pix_fmt yuv420p {outdir}/{vidname}.mp4'
 
     elif(process=='truncation'):
         if seeds is None or (len(seeds)>1):

@@ -1,4 +1,4 @@
-﻿# Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2021, NVIDIA CORPORATION.  All rights reserved.
 #
 # NVIDIA CORPORATION and its licensors retain all intellectual property
 # and proprietary rights in and to this software, related documentation
@@ -35,11 +35,11 @@ def load_network_pkl(f, force_fp16=False):
         data['augment_pipe'] = None
 
     # Validate contents.
-    assert isinstance(data['G'], torch.nn.Module)
-    assert isinstance(data['D'], torch.nn.Module)
-    assert isinstance(data['G_ema'], torch.nn.Module)
-    assert isinstance(data['training_set_kwargs'], (dict, type(None)))
-    assert isinstance(data['augment_pipe'], (torch.nn.Module, type(None)))
+    # assert isinstance(data['G'], torch.nn.Module)
+    # assert isinstance(data['D'], torch.nn.Module)
+    # assert isinstance(data['G_ema'], torch.nn.Module)
+    # assert isinstance(data['training_set_kwargs'], (dict, type(None)))
+    # assert isinstance(data['augment_pipe'], (torch.nn.Module, type(None)))
 
     # Force FP16.
     if force_fp16:
@@ -57,6 +57,28 @@ def load_network_pkl(f, force_fp16=False):
                 new = type(old)(**kwargs).eval().requires_grad_(False)
                 misc.copy_params_and_buffers(old, new, require_all=True)
                 data[key] = new
+    return data
+
+def load_G_ema_pkl(f, force_fp16=False):
+    data = _LegacyUnpickler(f).load()
+
+    
+    # Validate contents.
+    assert isinstance(data['G_ema'], torch.nn.Module)
+
+    # Force FP16.
+    if force_fp16:
+
+        old = data['G_ema']
+        kwargs = copy.deepcopy(old.init_kwargs)
+        kwargs.synthesis_kwargs = dnnlib.EasyDict(kwargs.get('synthesis_kwargs', {}))
+        kwargs.synthesis_kwargs.num_fp16_res = 4
+        kwargs.synthesis_kwargs.conv_clamp = 256
+
+        if kwargs != old.init_kwargs:
+            new = type(old)(**kwargs).eval().requires_grad_(False)
+            misc.copy_params_and_buffers(old, new, require_all=True)
+            data['G_ema'] = new
     return data
 
 #----------------------------------------------------------------------------
