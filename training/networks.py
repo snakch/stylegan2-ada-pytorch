@@ -246,7 +246,7 @@ class MappingNetwork(torch.nn.Module):
                     x = self.w_avg.lerp(x, truncation_psi)
                 elif isinstance(truncation_cutoff, int):
                     x[:, :truncation_cutoff] = self.w_avg.lerp(x[:, :truncation_cutoff], truncation_psi)
-                else truncation_cutoff:
+                else:
                     x[:, *truncation_cutoff] = self.w_avg.lerp(x[:, *truncation_cutoff], truncation_psi)
         return x
 
