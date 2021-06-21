@@ -244,8 +244,10 @@ class MappingNetwork(torch.nn.Module):
                 assert self.w_avg_beta is not None
                 if self.num_ws is None or truncation_cutoff is None:
                     x = self.w_avg.lerp(x, truncation_psi)
-                else:
+                elif isinstance(truncation_cutoff, int):
                     x[:, :truncation_cutoff] = self.w_avg.lerp(x[:, :truncation_cutoff], truncation_psi)
+                else truncation_cutoff:
+                    x[:, *truncation_cutoff] = self.w_avg.lerp(x[:, *truncation_cutoff], truncation_psi)
         return x
 
 #----------------------------------------------------------------------------
