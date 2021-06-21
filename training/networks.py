@@ -248,7 +248,8 @@ class MappingNetwork(torch.nn.Module):
                     x[:, :truncation_cutoff] = self.w_avg.lerp(x[:, :truncation_cutoff], truncation_psi)
                 else:
                     for layer in truncation_cutoff:
-                        x[:, layer] = self.w_avg.lerp(x[:, layer], truncation_psi)
+                        if layer < x.shape[1]:
+                            x[:, layer] = self.w_avg.lerp(x[:, layer], truncation_psi)
         return x
 
 #----------------------------------------------------------------------------
